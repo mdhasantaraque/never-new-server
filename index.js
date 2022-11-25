@@ -17,6 +17,23 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send("unauthorized access");
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: "forbidden access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
+
 async function run() {
   try {
     const productCollection = client
@@ -32,13 +49,13 @@ async function run() {
       const products = await productCollection.find(query).toArray();
       res.send(products);
     });
-    app.get("/productDetails", async (req, res) => {
+    app.get("/productDetails", verifyJWT, async (req, res) => {
       const email = req.query.email;
-      // const decodedEmail = req.decoded.email;
+      const decodedEmail = req.decoded.email;
 
-      // if (email !== decodedEmail) {
-      //     return res.status(403).send({ message: 'forbidden access' });
-      // }
+      if (email !== decodedEmail) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
 
       const query = { email: email };
       const result = await AllProductCollection.find(query).toArray();
