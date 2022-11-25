@@ -22,11 +22,32 @@ async function run() {
     const productCollection = client
       .db("neverNew")
       .collection("productOptions");
+    const AllProductCollection = client
+      .db("neverNew")
+      .collection("productDetails");
 
     app.get("/productOptions", async (req, res) => {
       const query = {};
       const products = await productCollection.find(query).toArray();
       res.send(products);
+    });
+    app.get("/productDetails", async (req, res) => {
+      const email = req.query.email;
+      // const decodedEmail = req.decoded.email;
+
+      // if (email !== decodedEmail) {
+      //     return res.status(403).send({ message: 'forbidden access' });
+      // }
+
+      const query = { email: email };
+      const result = await AllProductCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.post("/productDetails", async (req, res) => {
+      const details = req.body;
+      const result = await AllProductCollection.insertOne(details);
+      res.send(result);
     });
   } finally {
   }
