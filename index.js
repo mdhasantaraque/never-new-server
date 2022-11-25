@@ -25,6 +25,7 @@ async function run() {
     const AllProductCollection = client
       .db("neverNew")
       .collection("productDetails");
+    const usersCollection = client.db("neverNew").collection("users");
 
     app.get("/productOptions", async (req, res) => {
       const query = {};
@@ -47,6 +48,13 @@ async function run() {
     app.post("/productDetails", async (req, res) => {
       const details = req.body;
       const result = await AllProductCollection.insertOne(details);
+      res.send(result);
+    });
+
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      console.log(user);
+      const result = await usersCollection.insertOne(user);
       res.send(result);
     });
   } finally {
