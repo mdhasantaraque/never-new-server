@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -49,6 +49,7 @@ async function run() {
       const products = await productCollection.find(query).toArray();
       res.send(products);
     });
+
     app.get("/productDetails", verifyJWT, async (req, res) => {
       const email = req.query.email;
       const decodedEmail = req.decoded.email;
@@ -86,6 +87,13 @@ async function run() {
       const users = await usersCollection.find(query).toArray();
       res.send(users);
     });
+    app.get("/users/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const user = await usersCollection.findOne(query);
+      console.log(user);
+      res.send({ isAdmin: user?.role === "admin" });
+    });
 
     app.post("/users", async (req, res) => {
       const user = req.body;
@@ -93,12 +101,13 @@ async function run() {
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
+
     app.put("/users/admin/:id", verifyJWT, async (req, res) => {
       const decodedEmail = req.decoded.email;
       const query = { email: decodedEmail };
       const user = await usersCollection.findOne(query);
 
-      if (user?.role !== "admin") {
+      if (!user) {
         return res.status(403).send({ message: "forbidden access" });
       }
 
