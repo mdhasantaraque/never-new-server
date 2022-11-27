@@ -87,17 +87,24 @@ async function run() {
       const users = await usersCollection.find(query).toArray();
       res.send(users);
     });
+
+    app.get("/cars", async (req, res) => {
+      const query = { categories: "car" };
+      const allCars = await AllProductCollection.find(query).toArray();
+      res.send(allCars);
+    });
+
     app.get("/users/admin/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email };
       const user = await usersCollection.findOne(query);
-      console.log(user);
+      // console.log(user);
       res.send({ isAdmin: user?.role === "admin" });
     });
 
     app.post("/users", async (req, res) => {
       const user = req.body;
-      console.log(user);
+      // console.log(user);
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
@@ -129,6 +136,7 @@ async function run() {
 
     app.delete("/users/admin/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
+      console.log(id);
       const query = { _id: ObjectId(id) };
       const result = await usersCollection.deleteOne(query);
       res.send(result);
