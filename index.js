@@ -94,6 +94,18 @@ async function run() {
       res.send(allCars);
     });
 
+    app.get("/bikes", async (req, res) => {
+      const query = { categories: "bike" };
+      const allBikes = await AllProductCollection.find(query).toArray();
+      res.send(allBikes);
+    });
+
+    app.get("/vehicles", async (req, res) => {
+      const query = { categories: "vehicle" };
+      const allVehicles = await AllProductCollection.find(query).toArray();
+      res.send(allVehicles);
+    });
+
     app.get("/users/admin/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email };
