@@ -52,14 +52,23 @@ async function run() {
 
     app.get("/productDetails", verifyJWT, async (req, res) => {
       const email = req.query.email;
-      const decodedEmail = req.decoded.email;
+      // const decodedEmail = req.decoded.email;
 
-      if (email !== decodedEmail) {
-        return res.status(403).send({ message: "forbidden access" });
-      }
+      // if (email !== decodedEmail) {
+      //   return res.status(403).send({ message: "forbidden access" });
+      // }
 
       const query = { email: email };
       const result = await AllProductCollection.find(query).toArray();
+      if (result.length) {
+        return res.send(result);
+      } else {
+        const buyerQuery = { buyerEmail: email };
+        const buyerResult = await AllProductCollection.find(
+          buyerQuery
+        ).toArray();
+        return res.send(buyerResult);
+      }
       res.send(result);
     });
 
@@ -75,7 +84,7 @@ async function run() {
       const user = await usersCollection.findOne(query);
       if (user) {
         const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, {
-          expiresIn: "6h",
+          expiresIn: "1d",
         });
         return res.send({ accessToken: token });
       }
@@ -114,9 +123,26 @@ async function run() {
       res.send({ isAdmin: user?.role === "admin" });
     });
 
+    app.get("/dashboard/:email", async (req, res) => {
+      const email = req.params.email;
+      console.log(email);
+      const query = { email };
+      console.log(query);
+      const user = await usersCollection.findOne(query);
+      console.log(user);
+      res.send(user);
+    });
+
     app.post("/users", async (req, res) => {
       const user = req.body;
       // console.log(user);
+      const query = {
+        email: user.email,
+      };
+      const alreadyUser = await usersCollection.find(query).toArray();
+      if (alreadyUser.length) {
+        return res.send({ acknowledged: false });
+      }
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
