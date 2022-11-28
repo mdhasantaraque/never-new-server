@@ -126,7 +126,7 @@ async function run() {
       const query = { email: decodedEmail };
       const user = await usersCollection.findOne(query);
 
-      if (!user) {
+      if (user?.role !== "admin") {
         return res.status(403).send({ message: "forbidden access" });
       }
 
@@ -146,11 +146,40 @@ async function run() {
       res.send(result);
     });
 
+    app.put("/bookings/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const user = req.body;
+      const option = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          buyerName: user.buyerName,
+          buyerEmail: user.buyerEmail,
+          buyerPhone: user.buyerPhone,
+          buyerMeetingPlace: user.buyerMeetingPlace,
+          status: "booked",
+        },
+      };
+      const result = await AllProductCollection.updateOne(
+        filter,
+        updatedDoc,
+        option
+      );
+      res.send(result);
+    });
+
     app.delete("/users/admin/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      // console.log(id);
+      const query = { _id: ObjectId(id) };
+      const result = await usersCollection.deleteOne(query);
+      res.send(result);
+    });
+    app.delete("/dashboard/myProducts/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       console.log(id);
       const query = { _id: ObjectId(id) };
-      const result = await usersCollection.deleteOne(query);
+      const result = await AllProductCollection.deleteOne(query);
       res.send(result);
     });
   } finally {
